@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaptFind</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>VaptFind</h1>
+      <p class="subtitle">Vulnerability Detector</p>
+    </header>
+
+    <div id="status-container" class="status-box">
+      <div class="loader"></div>
+      <p>Scanning...</p>
+    </div>
+
+    <section id="results" class="hidden">
+      <div class="section-title">Browser Status</div>
+      <div id="browser-status" class="item-card">
+        <!-- Browser info will be injected here -->
+      </div>
+
+      <div class="section-title">Library Scan</div>
+      <div id="library-results">
+        <!-- Library results will be injected here -->
+      </div>
+    </section>
+
+    <footer>
+      <button id="scan-btn">Rescan Page</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

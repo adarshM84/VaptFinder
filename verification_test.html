@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaptFind Verification Page</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .card {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>VaptFind Verification Page</h1>
+    <p>This page simulates a vulnerable environment to test the VaptFind extension.</p>
+
+    <div class="card">
+        <h3>Loaded Libraries (Mocked & Real)</h3>
+        <ul>
+            <li><strong>jQuery 1.6.2</strong> (loaded via CDN) - Known Vulnerable</li>
+            <li><strong>AngularJS 1.5.8</strong> (Mocked) - Known Vulnerable</li>
+            <li><strong>React 15.6.2</strong> (Mocked) - Known Vulnerable</li>
+        </ul>
+    </div>
+
+    <!-- 1. Real jQuery Load -->
+    <script src="https://code.jquery.com/jquery-1.6.2.min.js"></script>
+
+    <script>
+        // 2. Mock AngularJS
+        window.angular = {
+            version: { full: "1.5.8" }
+        };
+
+        // 3. Mock React (Simulating DevTools hook presence)
+        window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {};
+        window.React = {
+            version: "15.6.2"
+        };
+
+        console.log("Environment prepared for VaptFind scan.");
+    </script>
+</body>
+
+</html>
