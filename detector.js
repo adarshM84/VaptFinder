@@ -34,6 +34,7 @@
         libraries.lodash = window._.VERSION;
     }
 
+
     // 6. Detect Bootstrap (JS)
     // Bootstrap 5
     if (window.bootstrap && window.bootstrap.Tooltip && window.bootstrap.Tooltip.VERSION) {
@@ -42,6 +43,81 @@
     // Bootstrap 4 (often on $)
     else if (window.jQuery && window.jQuery.fn && window.jQuery.fn.tooltip && window.jQuery.fn.tooltip.Constructor && window.jQuery.fn.tooltip.Constructor.VERSION) {
         libraries.bootstrap = window.jQuery.fn.tooltip.Constructor.VERSION;
+    }
+
+    // 7. Detect Backbone.js
+    if (window.Backbone && window.Backbone.VERSION) {
+        libraries.backbone = window.Backbone.VERSION;
+    }
+
+    // 8. Detect Ember.js
+    if (window.Ember && window.Ember.VERSION) {
+        libraries.ember = window.Ember.VERSION;
+    }
+
+    // 9. Detect Knockout.js
+    if (window.ko && window.ko.version) {
+        libraries.knockout = window.ko.version;
+    }
+
+    // 10. Detect Handlebars
+    if (window.Handlebars && window.Handlebars.VERSION) {
+        libraries.handlebars = window.Handlebars.VERSION;
+    }
+
+    // 11. Detect Mustache
+    if (window.Mustache && window.Mustache.version) {
+        libraries.mustache = window.Mustache.version;
+    }
+
+    // 12. Detect Next.js
+    if (window.__NEXT_DATA__) {
+        libraries.nextjs = window.__NEXT_DATA__.buildId || "Detected";
+    }
+
+    // 13. Detect Nuxt.js
+    if (window.__NUXT__) {
+        libraries.nuxtjs = "Detected"; // Version is often hard to pin down from global object
+    }
+
+    // 14. Detect Svelte
+    if (window.__svelte) {
+        libraries.svelte = "Detected";
+    }
+
+    // 15. Detect Polymer
+    if (window.Polymer && window.Polymer.version) {
+        libraries.polymer = window.Polymer.version;
+    }
+
+    // 16. Detect Meteor
+    if (window.Meteor && window.Meteor.release) {
+        libraries.meteor = window.Meteor.release;
+    }
+
+    // 17. Detect Zepto
+    if (window.Zepto) {
+        libraries.zepto = "Detected";
+    }
+
+    // 18. Detect Moment.js
+    if (window.moment && window.moment.version) {
+        libraries.moment = window.moment.version;
+    }
+
+    // 19. Detect Socket.io
+    if (window.io && window.io.version) {
+        libraries.socketio = window.io.version;
+    }
+
+    // 20. Detect DataTables
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.DataTable && window.jQuery.fn.DataTable.version) {
+        libraries.datatables = window.jQuery.fn.DataTable.version;
+    }
+
+    // 21. Detect Modernizr
+    if (window.Modernizr && window.Modernizr._version) {
+        libraries.modernizr = window.Modernizr._version;
     }
 
     window.postMessage({ type: "VAPT_LIBS_DETECTED", libraries: libraries }, "*");
