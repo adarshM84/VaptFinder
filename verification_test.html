@@ -53,6 +53,21 @@
         window.React = {
             version: "15.6.2"
         };
+        window.Modernizr = { _version: "3.11.7" };
+
+        // -----------------------------------------------------
+        // UNKNOWN LIBRARY MOCK (For Dynamic Auto-Discovery Test)
+        // -----------------------------------------------------
+        // This library is NOT in the hardcoded list. 
+        // The detector should find it because it's an extra global with a 'version' property.
+        window.SuperCorpLib = {
+            version: "9.9.9",
+            doSomething: function () { }
+        };
+
+        window.LegacyPlugin = {
+            VERSION: "1.0.0-beta"
+        };
 
         console.log("Environment prepared for VaptFind scan.");
     </script>
