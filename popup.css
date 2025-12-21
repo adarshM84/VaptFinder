@@ -28,6 +28,25 @@
   --input-text: #f3f4f6;
 }
 
+[data-theme="dark"] .icon-moon {
+  display: none;
+}
+
+[data-theme="dark"] .icon-sun {
+  display: flex;
+  align-items: center;
+}
+
+/* Default (Light Mode) */
+.icon-sun {
+  display: none;
+}
+
+.icon-moon {
+  display: flex;
+  align-items: center;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   width: 600px;
