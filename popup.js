@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reportContent = document.getElementById('report-content');
     const closeModal = document.querySelector('.close-modal');
     const downloadReportBtn = document.getElementById('download-report-btn');
+    const themeBtn = document.getElementById('theme-btn');
 
 
     // --- Event Listeners ---
@@ -81,6 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === reportModal) reportModal.classList.add('hidden');
     });
 
+    // Theme Toggle
+    themeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+
     // --- Initial Actions ---
     // 1. Check Browser Version
     const userAgent = navigator.userAgent;
@@ -92,6 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Init Suggestions
     updateSuggestions(prodEcosystemSelect.value);
+
+    // 4. Init Theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
 
 
     // --- Functions: Suggestions ---
