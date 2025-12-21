@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VaptFind</title>
+  <title>VaptFinder</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 
@@ -12,12 +12,11 @@
   <div class="app-container">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>VaptFind</h2>
+        <h2>VaptFinder</h2>
       </div>
       <nav class="nav-links">
         <button class="nav-btn active" data-tab="scanner-tab">Dashboard</button>
         <button class="nav-btn" data-tab="product-tab">Product Lookup</button>
-        <button class="nav-btn" data-tab="cve-tab">CVE Details</button>
       </nav>
       <div class="sidebar-footer">
         <button id="report-btn" class="report-btn">Generate Report</button>
@@ -51,31 +50,42 @@
         <header class="tab-header">
           <h3>Product Vulnerability</h3>
         </header>
+
         <div class="form-group">
-          <label for="prod-name">Product Name (npm)</label>
-          <input type="text" id="prod-name" placeholder="e.g. react">
+          <label for="prod-ecosystem">Ecosystem</label>
+          <select id="prod-ecosystem">
+            <option value="npm">npm (JavaScript)</option>
+            <option value="PyPI">PyPI (Python)</option>
+            <option value="Maven">Maven (Java)</option>
+            <option value="Go">Go</option>
+            <option value="NuGet">NuGet (.NET)</option>
+            <option value="RubyGems">RubyGems</option>
+            <option value="Packagist">Packagist (PHP)</option>
+            <option value="crates.io">crates.io (Rust)</option>
+            <option value="OSS-Fuzz">OSS-Fuzz (C/C++)</option>
+            <option value="Linux">Linux (Kernel)</option>
+            <option value="Debian">Debian</option>
+            <option value="Alpine">Alpine</option>
+            <option value="Android">Android</option>
+          </select>
         </div>
+
+        <div class="form-group">
+          <label for="prod-name">Product Name</label>
+          <input type="text" id="prod-name" list="common-products" placeholder="Search or enter product name...">
+          <datalist id="common-products">
+            <!-- Populated dynamically via JS -->
+          </datalist>
+        </div>
+
         <div class="form-group">
           <label for="prod-version">Version</label>
-          <input type="text" id="prod-version" placeholder="e.g. 16.8.0">
+          <input type="text" id="prod-version" placeholder="e.g. 1.0.0">
         </div>
+
         <button id="prod-search-btn" class="primary-btn">Check Vulnerabilities</button>
 
         <div id="product-results" class="results-area"></div>
-      </section>
-
-      <!-- CVE Details Tab -->
-      <section id="cve-tab" class="tab-content">
-        <header class="tab-header">
-          <h3>CVE Lookup</h3>
-        </header>
-        <div class="form-group">
-          <label for="cve-id">CVE ID</label>
-          <input type="text" id="cve-id" placeholder="e.g. CVE-2021-44228">
-        </div>
-        <button id="cve-search-btn" class="primary-btn">Get Details</button>
-
-        <div id="cve-results" class="results-area"></div>
       </section>
     </main>
   </div>
@@ -86,6 +96,9 @@
       <span class="close-modal">&times;</span>
       <h3>Scan Report</h3>
       <div id="report-content"></div>
+      <div style="margin-top: 20px; text-align: right;">
+        <button id="download-report-btn" class="primary-btn" style="width: auto;">Download PNG</button>
+      </div>
     </div>
   </div>
 

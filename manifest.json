@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "VaptFind: Vulnerability & Library Detector",
+  "name": "VaptFinder: Vulnerability & Library Detector",
   "version": "1.0",
   "description": "Inspects websites for outdated libraries and checks browser vulnerability.",
   "permissions": [

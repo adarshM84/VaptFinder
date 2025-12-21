@@ -12,21 +12,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const scanBtn = document.getElementById('scan-btn');
 
     // Product Search
+    const prodEcosystemSelect = document.getElementById('prod-ecosystem');
     const prodNameInput = document.getElementById('prod-name');
     const prodVersionInput = document.getElementById('prod-version');
     const prodSearchBtn = document.getElementById('prod-search-btn');
     const prodResultsDiv = document.getElementById('product-results');
+    const commonProductsDatalist = document.getElementById('common-products');
 
-    // CVE Search
-    const cveIdInput = document.getElementById('cve-id');
-    const cveSearchBtn = document.getElementById('cve-search-btn');
-    const cveResultsDiv = document.getElementById('cve-results');
+    // Suggestions Data
+    const suggestions = {
+        'npm': ['react', 'vue', 'angular', 'lodash', 'express', 'axios', 'next', 'jquery'],
+        'PyPI': ['requests', 'django', 'flask', 'numpy', 'pandas', 'tensorflow', 'scikit-learn'],
+        'Maven': ['org.springframework.boot:spring-boot', 'org.apache.logging.log4j:log4j-core', 'com.fasterxml.jackson.core:jackson-databind', 'org.slf4j:slf4j-api'],
+        'Go': ['github.com/gin-gonic/gin', 'github.com/gofiber/fiber', 'google.golang.org/grpc', 'github.com/dgrijalva/jwt-go'],
+        'NuGet': ['Newtonsoft.Json', 'EntityFramework', 'Microsoft.AspNetCore', 'Serilog'],
+        'RubyGems': ['rails', 'devise', 'rspec', 'puma', 'nokogiri'],
+        'Packagist': ['laravel/framework', 'symfony/symfony', 'monolog/monolog', 'guzzlehttp/guzzle'],
+        'crates.io': ['tokio', 'serde', 'rand', 'syn', 'regex'],
+        'Debian': ['nginx', 'apache2', 'openssl', 'bash', 'glibc']
+    };
 
     // Report
     const reportBtn = document.getElementById('report-btn');
     const reportModal = document.getElementById('report-modal');
     const reportContent = document.getElementById('report-content');
     const closeModal = document.querySelector('.close-modal');
+    const downloadReportBtn = document.getElementById('download-report-btn');
 
 
     // --- Event Listeners ---
@@ -45,6 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Ecosystem Change
+    prodEcosystemSelect.addEventListener('change', () => {
+        updateSuggestions(prodEcosystemSelect.value);
+    });
+
+    downloadReportBtn.addEventListener('click', downloadReportImage);
+
     // Scanner
     scanBtn.addEventListener('click', () => {
         resultsSection.classList.add('hidden');
@@ -55,9 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Product Search
     prodSearchBtn.addEventListener('click', handleProductSearch);
-
-    // CVE Search
-    cveSearchBtn.addEventListener('click', handleCveSearch);
 
     // Report
     reportBtn.addEventListener('click', generateReport);
@@ -74,6 +89,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Scan for libraries (auto-scan on load)
     scanLibraries();
+
+    // 3. Init Suggestions
+    updateSuggestions(prodEcosystemSelect.value);
+
+
+    // --- Functions: Suggestions ---
+    function updateSuggestions(ecosystem) {
+        commonProductsDatalist.innerHTML = '';
+        const list = suggestions[ecosystem] || [];
+        list.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            commonProductsDatalist.appendChild(option);
+        });
+    }
+
+
 
 
     // --- Functions: Scanner ---
@@ -212,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Functions: Product Search ---
 
     async function handleProductSearch() {
+        const ecosystem = document.getElementById('prod-ecosystem').value;
         const name = prodNameInput.value.trim();
         const version = prodVersionInput.value.trim();
 
@@ -225,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = {
             version: version,
             package: {
-                name: name.toLowerCase(),
-                ecosystem: 'npm' // Defaulting to npm for this demo as requested, but could be selectable
+                name: name, // Name is case-sensitive for some ecosystems, but generally lower for npm
+                ecosystem: ecosystem
             }
         };
 
@@ -237,18 +270,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(query)
             });
             const data = await response.json();
-            displayProductResults(name, version, data.vulns);
+            displayProductResults(name, version, data.vulns, ecosystem);
 
         } catch (error) {
             prodResultsDiv.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
         }
     }
 
-    function displayProductResults(name, version, vulns) {
+    function displayProductResults(name, version, vulns, ecosystem) {
         if (!vulns || vulns.length === 0) {
             prodResultsDiv.innerHTML = `
                 <div class="item-card safe">
                     <div class="item-name">${capitalize(name)} v${version}</div>
+                    <div style="font-size:12px; color:#666; margin-bottom:4px;">Ecosystem: ${ecosystem}</div>
                     <div style="color:var(--success-color); font-size:12px;">No known vulnerabilities found.</div>
                 </div>`;
             return;
@@ -267,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
              `;
         });
-        prodResultsDiv.innerHTML = `<p>Found ${vulns.length} vulnerabilities:</p>` + html;
+        prodResultsDiv.innerHTML = `<p>Found ${vulns.length} vulnerabilities for <strong>${name}</strong> (${ecosystem}):</p>` + html;
     }
 
 
@@ -351,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const libInfo = document.getElementById('library-results').innerText;
 
         const reportText = `
-            <h4>VaptFind Scan Report</h4>
+            <h4>VaptFinder Scan Report</h4>
             <hr>
             <h5>Browser Status</h5>
             <p>${browserInfo.replace(/\n/g, '<br>')}</p>
@@ -359,11 +393,132 @@ document.addEventListener('DOMContentLoaded', () => {
             <h5>Library Scan Results</h5>
             <p>${libInfo.replace(/\n/g, '<br>') || "No libraries scanned yet."}</p>
             <hr>
-            <p style="font-size:12px; color:#666;">Generated by VaptFind</p>
+            <p style="font-size:12px; color:#666;">Generated by VaptFinder</p>
         `;
 
         reportContent.innerHTML = reportText;
         reportModal.classList.remove('hidden');
+    }
+
+    function downloadReportImage() {
+        const browserText = document.getElementById('browser-status').innerText;
+        // Collect library results properly from DOM
+        const libCards = document.querySelectorAll('#library-results .item-card');
+        const libs = Array.from(libCards).map(card => {
+            return {
+                name: card.querySelector('.item-name').innerText,
+                version: card.querySelector('.item-version').innerText,
+                status: card.classList.contains('vulnerable') ? 'Vulnerable' : 'Safe'
+            };
+        });
+
+        // Create Canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = 600;
+        // Estimate height: Header (100) + Browser (100) + Libs (60 * count) + Footer (50)
+        const height = 250 + (libs.length * 70);
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+
+        // Header
+        ctx.fillStyle = '#4f46e5'; // Primary color
+        ctx.fillRect(0, 0, width, 80);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText('VaptFinder Scan Report', 20, 50);
+
+        // Browser Section
+        let y = 120;
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText('Browser Status', 20, y);
+        y += 30;
+        ctx.fillStyle = '#4b5563';
+        ctx.font = '14px Arial';
+        const browserLines = browserText.split('\n');
+        browserLines.forEach(line => {
+            if (line.trim()) {
+                ctx.fillText(line.trim(), 20, y);
+                y += 20;
+            }
+        });
+
+        // Library Section
+        y += 40;
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText('Library Scan Results', 20, y);
+        y += 30;
+
+        if (libs.length === 0) {
+            ctx.fillStyle = '#6b7280';
+            ctx.font = 'italic 14px Arial';
+            ctx.fillText("No libraries detected or scanned.", 20, y);
+        } else {
+            libs.forEach(lib => {
+                // Card bg
+                let bgColor = '#f9fafb';
+                let borderColor = '#d1d5db';
+                let statusColor = '#6b7280';
+
+                if (lib.status === 'Vulnerable') {
+                    bgColor = '#fef2f2';
+                    borderColor = '#ef4444';
+                    statusColor = '#dc2626';
+                } else if (lib.status === 'Safe') {
+                    bgColor = '#f0fdf4';
+                    borderColor = '#10b981';
+                    statusColor = '#059669';
+                }
+
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(20, y, width - 40, 60);
+
+                // Border accent left
+                ctx.fillStyle = borderColor;
+                ctx.fillRect(20, y, 4, 60);
+
+                // Text
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(lib.name, 35, y + 25);
+
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '12px Arial';
+                ctx.fillText(lib.version, 35, y + 45);
+
+                ctx.fillStyle = statusColor;
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(lib.status, width - 100, y + 35);
+
+                y += 70; // Spacing
+            });
+        }
+
+        // Footer
+        y += 20;
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.beginPath();
+        ctx.moveTo(20, y);
+        ctx.lineTo(width - 20, y);
+        ctx.stroke();
+
+        y += 30;
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '12px Arial';
+        ctx.fillText(`Generated by VaptFinder on ${new Date().toLocaleDateString()}`, 20, y);
+
+        // Download
+        const link = document.createElement('a');
+        link.download = 'VaptFinder-report.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     }
 
     // --- Utilities ---

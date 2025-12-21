@@ -146,7 +146,8 @@ body {
   color: #4b5563;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border-color);
@@ -155,9 +156,11 @@ body {
   outline: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  background-color: #fff;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }

@@ -9,7 +9,6 @@ function injectDetector() {
 }
 
 // Listen for messages from detector.js
-// Listen for messages from detector.js
 if (!window.vaptListenerAdded) {
     window.addEventListener("message", function (event) {
         // We only accept messages from ourselves
