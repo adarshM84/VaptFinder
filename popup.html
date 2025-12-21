@@ -9,32 +9,84 @@
 </head>
 
 <body>
-  <div class="container">
-    <header>
-      <h1>VaptFind</h1>
-      <p class="subtitle">Vulnerability Detector</p>
-    </header>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>VaptFind</h2>
+      </div>
+      <nav class="nav-links">
+        <button class="nav-btn active" data-tab="scanner-tab">Dashboard</button>
+        <button class="nav-btn" data-tab="product-tab">Product Lookup</button>
+        <button class="nav-btn" data-tab="cve-tab">CVE Details</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="report-btn" class="report-btn">Generate Report</button>
+      </div>
+    </aside>
 
-    <div id="status-container" class="status-box">
-      <div class="loader"></div>
-      <p>Scanning...</p>
+    <main class="main-content">
+      <!-- Scanner Tab -->
+      <section id="scanner-tab" class="tab-content active">
+        <header class="tab-header">
+          <h3>Current Page Scan</h3>
+          <button id="scan-btn" class="action-btn">Rescan</button>
+        </header>
+
+        <div id="status-container" class="status-box">
+          <div class="loader"></div>
+          <p>Scanning...</p>
+        </div>
+
+        <div id="results" class="hidden">
+          <div class="section-title">Browser Status</div>
+          <div id="browser-status" class="item-card"></div>
+
+          <div class="section-title">Library Scan</div>
+          <div id="library-results"></div>
+        </div>
+      </section>
+
+      <!-- Product Vulnerability Tab -->
+      <section id="product-tab" class="tab-content">
+        <header class="tab-header">
+          <h3>Product Vulnerability</h3>
+        </header>
+        <div class="form-group">
+          <label for="prod-name">Product Name (npm)</label>
+          <input type="text" id="prod-name" placeholder="e.g. react">
+        </div>
+        <div class="form-group">
+          <label for="prod-version">Version</label>
+          <input type="text" id="prod-version" placeholder="e.g. 16.8.0">
+        </div>
+        <button id="prod-search-btn" class="primary-btn">Check Vulnerabilities</button>
+
+        <div id="product-results" class="results-area"></div>
+      </section>
+
+      <!-- CVE Details Tab -->
+      <section id="cve-tab" class="tab-content">
+        <header class="tab-header">
+          <h3>CVE Lookup</h3>
+        </header>
+        <div class="form-group">
+          <label for="cve-id">CVE ID</label>
+          <input type="text" id="cve-id" placeholder="e.g. CVE-2021-44228">
+        </div>
+        <button id="cve-search-btn" class="primary-btn">Get Details</button>
+
+        <div id="cve-results" class="results-area"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Report Modal -->
+  <div id="report-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Scan Report</h3>
+      <div id="report-content"></div>
     </div>
-
-    <section id="results" class="hidden">
-      <div class="section-title">Browser Status</div>
-      <div id="browser-status" class="item-card">
-        <!-- Browser info will be injected here -->
-      </div>
-
-      <div class="section-title">Library Scan</div>
-      <div id="library-results">
-        <!-- Library results will be injected here -->
-      </div>
-    </section>
-
-    <footer>
-      <button id="scan-btn">Rescan Page</button>
-    </footer>
   </div>
 
   <script src="popup.js"></script>

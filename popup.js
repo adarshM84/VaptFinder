@@ -1,40 +1,91 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- UI Elements ---
+    // Tabs
+    const tabs = document.querySelectorAll('.nav-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Scanner
     const statusContainer = document.getElementById('status-container');
     const resultsSection = document.getElementById('results');
     const browserStatusDiv = document.getElementById('browser-status');
     const libraryResultsDiv = document.getElementById('library-results');
     const scanBtn = document.getElementById('scan-btn');
 
-    // 1. Check Browser Version
-    const userAgent = navigator.userAgent;
-    const browserInfo = getBrowserInfo(userAgent);
-    displayBrowserInfo(browserInfo);
+    // Product Search
+    const prodNameInput = document.getElementById('prod-name');
+    const prodVersionInput = document.getElementById('prod-version');
+    const prodSearchBtn = document.getElementById('prod-search-btn');
+    const prodResultsDiv = document.getElementById('product-results');
 
-    // 2. Scan for libraries
-    scanLibraries();
+    // CVE Search
+    const cveIdInput = document.getElementById('cve-id');
+    const cveSearchBtn = document.getElementById('cve-search-btn');
+    const cveResultsDiv = document.getElementById('cve-results');
 
+    // Report
+    const reportBtn = document.getElementById('report-btn');
+    const reportModal = document.getElementById('report-modal');
+    const reportContent = document.getElementById('report-content');
+    const closeModal = document.querySelector('.close-modal');
+
+
+    // --- Event Listeners ---
+
+    // Tab Switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and contents
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+
+            // Add active class to clicked tab and target content
+            tab.classList.add('active');
+            const targetId = tab.dataset.tab;
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
+
+    // Scanner
     scanBtn.addEventListener('click', () => {
-        // Reset UI
         resultsSection.classList.add('hidden');
         statusContainer.classList.remove('hidden');
         libraryResultsDiv.innerHTML = '';
         scanLibraries();
     });
 
+    // Product Search
+    prodSearchBtn.addEventListener('click', handleProductSearch);
+
+    // CVE Search
+    cveSearchBtn.addEventListener('click', handleCveSearch);
+
+    // Report
+    reportBtn.addEventListener('click', generateReport);
+    closeModal.addEventListener('click', () => reportModal.classList.add('hidden'));
+    window.addEventListener('click', (e) => {
+        if (e.target === reportModal) reportModal.classList.add('hidden');
+    });
+
+    // --- Initial Actions ---
+    // 1. Check Browser Version
+    const userAgent = navigator.userAgent;
+    const browserInfo = getBrowserInfo(userAgent);
+    displayBrowserInfo(browserInfo);
+
+    // 2. Scan for libraries (auto-scan on load)
+    scanLibraries();
+
+
+    // --- Functions: Scanner ---
+
     function scanLibraries() {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             const activeTab = tabs[0];
-            if (!activeTab.url || activeTab.url.startsWith('chrome://')) {
+            if (!activeTab || !activeTab.url || activeTab.url.startsWith('chrome://')) {
                 showError("Cannot scan this page.");
                 return;
             }
 
-            // Inject content script if not already present? 
-            // Actually, manifest injects content.js automatically on load.
-            // But for SPA navigations or if popup opened late, we might need to re-trigger or ask content script for state.
-            // For simplicity, we'll reload the page-script injection via scripting API or just trust activeTab injection logic.
-
-            // Better approach for manual scan: execute script again
             chrome.scripting.executeScript({
                 target: { tabId: activeTab.id },
                 files: ['content.js']
@@ -46,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Listen for data from content.js
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action === "libsDetected") {
             fetchVulnerabilities(message.libraries);
@@ -54,16 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function displayBrowserInfo(info) {
-        // Simple heuristic for "outdated" chrome (current is approx 120+, let's say < 110 is old for this demo)
-        // In reality we'd fetch from an API
         const isVulnerable = info.name === "Chrome" && parseInt(info.version) < 110;
-
         const html = `
         <div class="item-name">${info.name} ${info.version}</div>
         <div class="item-version">${isVulnerable ? "Potentially Information Exposure (Older Version)" : "Version appears recent"}</div>
         ${isVulnerable ? '<span class="vuln-badge">Update Recommended</span>' : ''}
       `;
-
         browserStatusDiv.innerHTML = html;
         browserStatusDiv.className = 'item-card ' + (isVulnerable ? 'warning' : 'safe');
     }
@@ -80,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const entries = Object.entries(libraries);
 
-        // 1. Render all cards immediately with loading state
         entries.forEach(([lib, version]) => {
             const cardId = `lib-${lib}`;
             libraryResultsDiv.innerHTML += `
@@ -92,10 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
         });
 
-        // 2. Fetch vulnerabilities in parallel
         const fetchPromises = entries.map(async ([lib, version]) => {
-            // Prepare OSV query
-            // Ecosystem 'npm' is a safe bet for most frontend libs (jquery, react, vue, etc)
             const query = {
                 version: version,
                 package: {
@@ -110,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(query)
                 });
-                console.log(query, response);
                 const data = await response.json();
                 const cardId = `lib-${lib}`;
                 updateLibraryCard(cardId, lib, version, data.vulns);
@@ -139,12 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = `
         <div class="item-name">${capitalize(lib)}</div>
         <div class="item-version">Version: ${version}</div>
-        ${isVulnerable ? '<span class="vuln-badge">Vulnerable</span>' : '<span style="color:#2ecc71; font-size:12px;">No known vulnerabilities</span>'}
+        ${isVulnerable ? '<span class="vuln-badge">Vulnerable</span>' : '<span style="color:var(--success-color); font-size:12px;">No known vulnerabilities</span>'}
       `;
 
         if (isVulnerable) {
             vulns.forEach(v => {
-                // Prefer CVE ID if available, else OSV ID
                 const cveId = v.aliases ? v.aliases.find(a => a.startsWith('CVE-')) : null;
                 const displayId = cveId || v.id;
                 const link = cveId ?
@@ -161,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
            `;
             });
         }
-
         card.innerHTML = html;
     }
 
@@ -170,10 +209,166 @@ document.addEventListener('DOMContentLoaded', () => {
         statusContainer.innerHTML = `<p style="color:red">${msg}</p>`;
     }
 
+    // --- Functions: Product Search ---
+
+    async function handleProductSearch() {
+        const name = prodNameInput.value.trim();
+        const version = prodVersionInput.value.trim();
+
+        if (!name || !version) {
+            prodResultsDiv.innerHTML = '<p style="color:red">Please enter both product name and version.</p>';
+            return;
+        }
+
+        prodResultsDiv.innerHTML = '<div class="loader"></div>';
+
+        const query = {
+            version: version,
+            package: {
+                name: name.toLowerCase(),
+                ecosystem: 'npm' // Defaulting to npm for this demo as requested, but could be selectable
+            }
+        };
+
+        try {
+            const response = await fetch('https://api.osv.dev/v1/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(query)
+            });
+            const data = await response.json();
+            displayProductResults(name, version, data.vulns);
+
+        } catch (error) {
+            prodResultsDiv.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+        }
+    }
+
+    function displayProductResults(name, version, vulns) {
+        if (!vulns || vulns.length === 0) {
+            prodResultsDiv.innerHTML = `
+                <div class="item-card safe">
+                    <div class="item-name">${capitalize(name)} v${version}</div>
+                    <div style="color:var(--success-color); font-size:12px;">No known vulnerabilities found.</div>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        vulns.forEach(v => {
+            const cveId = v.aliases ? v.aliases.find(a => a.startsWith('CVE-')) : v.id;
+            html += `
+                <div class="item-card vulnerable">
+                    <div class="item-name">${cveId}</div>
+                    <div class="item-version">${v.summary || "No summary available"}</div>
+                    <div class="cve-list">
+                         <a href="https://osv.dev/vulnerability/${v.id}" target="_blank" class="cve-item">View Details on OSV</a>
+                    </div>
+                </div>
+             `;
+        });
+        prodResultsDiv.innerHTML = `<p>Found ${vulns.length} vulnerabilities:</p>` + html;
+    }
+
+
+    // --- Functions: CVE Search ---
+
+    async function handleCveSearch() {
+        const cveId = cveIdInput.value.trim();
+        if (!cveId) {
+            cveResultsDiv.innerHTML = '<p style="color:red">Please enter a CVE ID.</p>';
+            return;
+        }
+
+        cveResultsDiv.innerHTML = '<div class="loader"></div>';
+
+        // OSV API uses /v1/vulns/{id} but prefers OSV IDs (GHSA-..., etc)
+        // However, it can resolve CVE IDs if they are indexed.
+        // Let's try fetching directly.
+
+        try {
+            // We'll try query by alias via text search if direct ID lookup fails? 
+            // Actually, OSV's `v1/vulns/{id}` endpoint *expects* an OSV ID, but sometimes works with CVEs?
+            // Documentation says "The ID of the vulnerability to retrieve."
+            // Let's try the NVD API if OSV fails or returns nothing useful for a CVE ID, 
+            // OR just link to it. The user wants to "Fetch and display" details.
+            // Accessing NVD API requires an API key for reliability, otherwise rate limits are strict.
+            // Circl.lu is a good alternative for CVEs.
+
+            const url = `https://cve.circl.lu/api/cve/${cveId}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("CVE not found or API error");
+
+            const data = await response.json();
+            if (!data) {
+                cveResultsDiv.innerHTML = '<p>CVE not found.</p>';
+                return;
+            }
+
+            displayCveDetails(data);
+
+        } catch (error) {
+            // Fallback: try OSV just in case? Or just show error.
+            console.error(error);
+            cveResultsDiv.innerHTML = `<p style="color:red">Error fetching CVE details. Please verify the ID.</p>`;
+        }
+    }
+
+    function displayCveDetails(data) {
+        if (!data.id) {
+            cveResultsDiv.innerHTML = '<p>No data found for this CVE.</p>';
+            return;
+        }
+
+        const html = `
+            <div class="item-card warning">
+                <div class="item-name">${data.id}</div>
+                <div class="item-version">Published: ${data.Published}</div>
+                <p style="font-size:13px; margin-top:8px;">${data.summary}</p>
+                
+                ${data.cvss ? `<div class="vuln-badge" style="background:${getSeverityColor(data.cvss)}">CVSS: ${data.cvss}</div>` : ''}
+                
+                <div class="cve-list">
+                    <strong>References:</strong>
+                    ${data.references.slice(0, 3).map(ref => `<a href="${ref}" target="_blank" class="cve-item">${ref.substring(0, 40)}...</a>`).join('')}
+                </div>
+            </div>
+        `;
+        cveResultsDiv.innerHTML = html;
+    }
+
+    function getSeverityColor(score) {
+        if (score >= 9.0) return '#ef4444'; // Critical
+        if (score >= 7.0) return '#f97316'; // High
+        if (score >= 4.0) return '#f59e0b'; // Medium
+        return '#10b981'; // Low
+    }
+
+
+    // --- Functions: Report Generation ---
+    function generateReport() {
+        const browserInfo = document.getElementById('browser-status').innerText;
+        const libInfo = document.getElementById('library-results').innerText;
+
+        const reportText = `
+            <h4>VaptFind Scan Report</h4>
+            <hr>
+            <h5>Browser Status</h5>
+            <p>${browserInfo.replace(/\n/g, '<br>')}</p>
+            <hr>
+            <h5>Library Scan Results</h5>
+            <p>${libInfo.replace(/\n/g, '<br>') || "No libraries scanned yet."}</p>
+            <hr>
+            <p style="font-size:12px; color:#666;">Generated by VaptFind</p>
+        `;
+
+        reportContent.innerHTML = reportText;
+        reportModal.classList.remove('hidden');
+    }
+
+    // --- Utilities ---
     function getBrowserInfo(ua) {
-        // Very basic UA parser
-        let tem,
-            M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        let tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
         if (/trident/i.test(M[1])) {
             tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
             return { name: 'IE', version: (tem[1] || '') };
