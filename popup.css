@@ -89,6 +89,7 @@ body {
   background-color: var(--primary-color);
   color: #fff;
   border-right: 3px solid #fff;
+  border-radius: 0px;
 }
 
 .sidebar-footer {

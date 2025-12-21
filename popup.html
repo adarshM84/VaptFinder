@@ -17,6 +17,7 @@
       <nav class="nav-links">
         <button class="nav-btn active" data-tab="scanner-tab">Dashboard</button>
         <button class="nav-btn" data-tab="product-tab">Product Lookup</button>
+        <button class="nav-btn" data-tab="about-tab">About</button>
       </nav>
       <div class="sidebar-footer">
         <button id="report-btn" class="report-btn">Generate Report</button>
@@ -86,6 +87,28 @@
         <button id="prod-search-btn" class="primary-btn">Check Vulnerabilities</button>
 
         <div id="product-results" class="results-area"></div>
+      </section>
+
+      <section id="about-tab" class="tab-content">
+        <header class="tab-header">
+          <h3>About VaptFinder</h3>
+        </header>
+        <div id="about-content">
+          <p>VaptFinder is a lightweight, privacy-focused Chrome Extension designed to help developers and security
+            enthusiasts quickly identify potential vulnerabilities in web technologies.</p>
+          <p>It serves two main purposes:</p>
+          <ul>
+            <li>Passive Scan: Automatically scans the current tab for common JavaScript libraries (like React, jQuery,
+              Lodash) and checks if the detected version has known vulnerabilities.</li>
+            <li>Product Lookup: Switch tabs to manually check any package you are interested in.</li>
+          </ul>
+          <p>It is open source and created by <a href="https://github.com/adarshmishra" target="_blank">Adarsh
+              Mishra</a> and can be found on GitHub.</p>
+          <p>For more information, visit the <a href="https://github.com/adarshmishra/VaptFind" target="_blank">GitHub
+              repository</a>.</p>
+          <p>It is designed with privacy in mind. It does not track you, uses no analytics, and sends data only when
+            necessary to perform a vulnerability check.</p>
+        </div>
       </section>
     </main>
   </div>
