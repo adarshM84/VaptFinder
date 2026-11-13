@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "VaptFinder: Vulnerability & Library Detector",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Inspects websites for outdated libraries and checks browser vulnerability.",
   "permissions": [
     "activeTab",
